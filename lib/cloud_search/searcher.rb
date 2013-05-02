@@ -92,25 +92,36 @@ module CloudSearch
     def url
       check_configuration_parameters
 
-      "#{CloudSearch.config.search_url}/search".tap do |u|
-        u.concat("?#{query_parameter}=#{query}&size=#{items_per_page}&start=#{start}")
-        u.concat("&return-fields=#{URI.escape(@fields.join(","))}") if @fields.any?
-        u.concat("&#{filter_expression}") if @filters.any?
-        u.concat("&facet=#{@facets.join(',')}") if @facets.any?
-        u.concat(@facets_constraints.map { |k,v| "facet-#{k}-constraints=#{v.join(',')}" }.join('&'))
-        u.concat("&rank=#{@rank}") if @rank
-      end
+      query_params = {
+        query_parameter => query,
+        :size           => items_per_page.to_s,
+        :start          => start.to_s,
+        'return-fields' => URI.escape(@fields.join(',')),
+        :facet          => @facets.join(','),
+        :rank           => @rank,
+      }.merge(@facets_constraints.map do
+          |facet, values| { "facet-#{facet}-constraints" => values.join(',') }
+        end.reduce({}, :merge))
+
+      "#{CloudSearch.config.search_url}/search?#{as_querystring(query_params)}#{filter_expression}"
     end
 
     private
+
+    def as_querystring(params)
+      compact(params).map { |parameter, value| "#{parameter}=#{value}"}.join('&')
+    end
+
+    def compact(params)
+      params.delete_if { |parameter, value| parameter != query_parameter && (value.nil? || value.empty?) }
+    end
 
     def query_parameter
       boolean_query? ? "bq" : "q"
     end
 
     def filter_expression
-      @filters.join("&")
+      @filters.any? ? "&#{@filters.join("&")}" : ""
     end
   end
 end
-
