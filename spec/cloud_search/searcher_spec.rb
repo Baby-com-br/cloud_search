@@ -14,11 +14,11 @@ describe CloudSearch::Searcher do
     end
 
     it "sets the query parameter in the search url" do
-      searcher.with_query("foo").url.should include "q=foo"
+      searcher.with_query("foo").params.should include('q' => 'foo')
     end
 
     it "escapes the search term" do
-      searcher.with_query("f&oo").url.should include "q=f%26oo"
+      searcher.with_query("f&oo").params.should include('q' => 'f%26oo')
     end
   end
 
@@ -28,25 +28,25 @@ describe CloudSearch::Searcher do
     end
 
     it "sets the boolean query parameter in the search url" do
-      searcher.with_boolean_query(:foo => 'bar').url.should include "bq=(and foo:'bar')"
+      searcher.with_boolean_query(:foo => 'bar').params.should include('bq' => "(and foo:'bar')")
     end
 
     it "escapes search terms" do
-      searcher.with_boolean_query(:foo => 'ba&r').url.should include "bq=(and foo:'ba%26r')"
+      searcher.with_boolean_query(:foo => 'ba&r').params.should include('bq' => "(and foo:'ba%26r')")
     end
 
     it "sets search terms with multiple acceptable values" do
-      searcher.with_boolean_query(:foo => ['bar', 'baz']).url.should include "bq=(and foo:'bar|baz')"
+      searcher.with_boolean_query(:foo => ['bar', 'baz']).params.should include("bq" => "(and foo:'bar|baz')")
     end
 
     it "sets multiple search keys" do
-      searcher.with_boolean_query(:foo => 'bar', :baz => ['zaz', 'traz']).url.should include "bq=(and foo:'bar' baz:'zaz|traz')"
+      searcher.with_boolean_query(:foo => 'bar', :baz => ['zaz', 'traz']).params.should include("bq" => "(and foo:'bar' baz:'zaz|traz')")
     end
   end
 
   describe "#with_facet" do
     it "setup facets" do
-      searcher.with_facets("foo", "bar").url.should include "facet=foo,bar"
+      searcher.with_facets("foo", "bar").params.should include("facet" => "foo,bar")
     end
   end
 
@@ -56,7 +56,7 @@ describe CloudSearch::Searcher do
     end
 
     it "sets the rank expression in the searcher object" do
-      searcher.ranked_by("foobar").url.should include "rank=foobar"
+      searcher.ranked_by("foobar").params.should include("rank" => "foobar")
     end
   end
 
@@ -70,7 +70,7 @@ describe CloudSearch::Searcher do
     end
 
     it "returns cloud search url with foo and bar fields" do
-      searcher.with_fields(:foo, :bar).url.should include "return-fields=foo,bar"
+      searcher.with_fields(:foo, :bar).params.should include("return-fields" => "foo,bar")
     end
   end
 
@@ -96,7 +96,7 @@ describe CloudSearch::Searcher do
     end
 
     it "returns cloud search url with size equals 20" do
-      searcher.with_items_per_page(20).url.should include "size=20"
+      searcher.with_items_per_page(20).params.should include("size" => 20)
     end
   end
 
@@ -130,14 +130,14 @@ describe CloudSearch::Searcher do
     end
 
     it "returns cloud search url with start at 10" do
-      searcher.at_page(2).url.should include "start=10"
+      searcher.at_page(2).params.should include("start" => 10)
     end
   end
 
   describe "#with_filters" do
     it "adds filters to the search" do
       searcher.with_query("foo").with_filters('t-product_active' => 1, 't-brand_active' => 2)
-      searcher.url.should include "t-product_active=1&t-brand_active=2"
+      searcher.params.should include("t-product_active" => 1, "t-brand_active" => 2)
     end
   end
 
@@ -153,12 +153,8 @@ describe CloudSearch::Searcher do
   end
 
   describe "#url" do
-    it "returns default cloud search url" do
-      searcher.url.should include "size=10&start=0"
-    end
-
     it "raises an error if neither query nor boolean query are defined" do
-      expect { described_class.new.url }.to raise_error CloudSearch::InsufficientParametersException
+      expect { described_class.new.params }.to raise_error CloudSearch::InsufficientParametersException
     end
   end
 

@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: http://search-imdb-movies-pl6u4t3elu7dhsbwaqbsy3y6be.us-east-1.cloudsearch.amazonaws.com/2011-02-01/search?q=star%20wars&return-fields=actor,director,title,year,text_relevance&size=4&start=4
+    uri: http://search-imdb-movies-pl6u4t3elu7dhsbwaqbsy3y6be.us-east-1.cloudsearch.amazonaws.com/2011-02-01/search?q=star%2Bwars&return-fields=actor,director,title,year,text_relevance&size=4&start=4
     body:
       encoding: US-ASCII
       string: ''

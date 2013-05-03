@@ -16,7 +16,7 @@ module CloudSearch
     end
 
     def search
-      cloud_search_response = RestClient.get url
+      cloud_search_response = RestClient.get "#{CloudSearch.config.search_url}/search", :params => params
       @response.http_code   = cloud_search_response.code
       @response.body        = cloud_search_response.body
 
@@ -67,7 +67,7 @@ module CloudSearch
       self
     end
 
-    def url
+    def params
       check_configuration_parameters
       raise InsufficientParametersException.new('At least query or boolean_query must be defined.') if (@query.empty? && @boolean_queries.empty?)
 
@@ -83,8 +83,7 @@ module CloudSearch
       params.merge! @filters
       params.delete_if { |_,v| v.nil? || v.to_s.empty? }
 
-      querystring = params.map { |k,v| "#{k}=#{v}" }.join('&')
-      "#{CloudSearch.config.search_url}/search?#{querystring}"
+      params
     end
 
     def items_per_page
@@ -113,10 +112,6 @@ module CloudSearch
         "#{key}:'#{values.map { |e| CGI::escape(e) }.join('|')}'"
       end.join(' ')
       "(and #{bq})"
-    end
-
-    def filter_expression
-      @filters.join("&")
     end
   end
 end
