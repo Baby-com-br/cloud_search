@@ -53,6 +53,10 @@ describe CloudSearch::Searcher do
     it "returns cloud search url with escaped boolean query" do
       searcher.with_boolean_query(:foo => 'ba&r').url.should include "bq=(and foo:'ba%26r')"
     end
+
+    it "returns cloud search url with multiple arguments per key" do
+      searcher.with_boolean_query(:foo => ['bar', 'baz']).url.should include "bq=(and foo:'bar|baz')"
+    end
   end
 
   describe "#with_facet" do

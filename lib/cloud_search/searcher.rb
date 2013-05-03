@@ -30,6 +30,10 @@ module CloudSearch
     end
 
     def with_boolean_query(queries)
+      queries.each do |k, v|
+        queries[k] = [v] unless v.respond_to? :map
+      end
+
       @boolean_queries.merge!(queries)
       self
     end
@@ -69,30 +73,6 @@ module CloudSearch
       self
     end
 
-    def query
-      CGI::escape(@query)
-    end
-
-    def boolean_query
-      bq = @boolean_queries.map do |k, v|
-        "#{k}:'#{CGI::escape(v)}'"
-      end.join(' ')
-      "(and #{bq})"
-    end
-
-    def items_per_page
-      @response.items_per_page
-    end
-
-    def page_number
-      @page_number or 1
-    end
-
-    def start
-      return 0 if page_number <= 1
-      (items_per_page * (page_number - 1))
-    end
-
     def url
       check_configuration_parameters
 
@@ -108,6 +88,30 @@ module CloudSearch
         end.join('&'))
         u.concat("&rank=#{@rank}") if @rank
       end
+    end
+
+    def query
+      CGI::escape(@query)
+    end
+
+    def boolean_query
+      bq = @boolean_queries.map do |key, values|
+        "#{key}:'#{values.map { |e| CGI::escape(e) }.join('|')}'"
+      end.join(' ')
+      "(and #{bq})"
+    end
+
+    def items_per_page
+      @response.items_per_page
+    end
+
+    def page_number
+      @page_number or 1
+    end
+
+    def start
+      return 0 if page_number <= 1
+      (items_per_page * (page_number - 1))
     end
 
     private
