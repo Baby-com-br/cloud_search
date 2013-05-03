@@ -23,21 +23,35 @@ describe CloudSearch::Searcher do
       searcher.with_query("foo").should == searcher
     end
 
-    it "setup query" do
+    it "setups query" do
       searcher.with_query("foo")
       searcher.query.should == "foo"
     end
 
-    it "returns cloud search url with foo query" do
-      searcher.with_query("foo").url.should == "#{url_prefix}q=foo&size=10&start=0"
+    it "returns cloud search url with query" do
+      searcher.with_query("foo").url.should include "q=foo"
     end
 
-    it "returns cloud search url with foo query" do
-      searcher.with_query("f&oo").url.should == "#{url_prefix}q=f%26oo&size=10&start=0"
+    it "returns cloud search url with escaped query" do
+      searcher.with_query("f&oo").url.should include "q=f%26oo"
+    end
+  end
+
+  describe "#with_boolean_query" do
+    it "return #{described_class} instance" do
+      searcher.with_boolean_query(:foo => 'bar').should == searcher
     end
 
-    it "returns cloud search url with foo* query" do
-      searcher.with_query("foo*").url.should == "#{url_prefix}q=foo*&size=10&start=0"
+    it "setup boolean query" do
+      searcher.with_boolean_query(:foo => 'bar').boolean_query.should == "(and foo:'bar')"
+    end
+
+    it "returns cloud search url with boolean query" do
+      searcher.with_boolean_query(:foo => 'bar').url.should include "bq=(and foo:'bar')"
+    end
+
+    it "returns cloud search url with escaped boolean query" do
+      searcher.with_boolean_query(:foo => 'ba&r').url.should include "bq=(and foo:'ba%26r')"
     end
   end
 
@@ -60,23 +74,6 @@ describe CloudSearch::Searcher do
 
     it "sets the rank expression in the searcher object" do
       searcher.ranked_by("foobar").url.should == "#{url_prefix}q=&size=10&start=0&rank=foobar"
-    end
-  end
-
-  describe "#as_boolean_query" do
-    it "sets the query mode to 'boolean'" do
-      searcher.as_boolean_query
-      searcher.should be_boolean_query
-    end
-
-    it "returns the searcher instance" do
-      searcher.as_boolean_query.should == searcher
-    end
-
-    it "uses 'bq' to specify the query in the URL" do
-      searcher.as_boolean_query
-      searcher.with_query("year:2000")
-      searcher.url.should == "#{url_prefix}bq=year:2000&size=10&start=0"
     end
   end
 
@@ -179,7 +176,7 @@ describe CloudSearch::Searcher do
 
   describe "#url" do
     it "returns default cloud search url" do
-      searcher.url.should == "#{url_prefix}q=&size=10&start=0"
+      searcher.url.should include "size=10&start=0"
     end
   end
 

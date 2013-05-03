@@ -8,9 +8,11 @@ module CloudSearch
 
     def initialize
       @response = SearchResponse.new
-      @filters  = []
-      @facets   = []
-      @fields   = []
+      @query = ''
+      @boolean_queries = {}
+      @filters = []
+      @facets = []
+      @fields = []
       @facets_constraints = {}
     end
 
@@ -23,7 +25,12 @@ module CloudSearch
     end
 
     def with_query(query)
-      @query = query
+      @query = query || ''
+      self
+    end
+
+    def with_boolean_query(queries)
+      @boolean_queries.merge!(queries)
       self
     end
 
@@ -42,23 +49,9 @@ module CloudSearch
       self
     end
 
-    def as_boolean_query
-      @boolean = true
-      self
-    end
-
     def ranked_by(rank_expression)
       @rank = rank_expression
       self
-    end
-
-    def query
-      return '' unless @query
-      URI.escape(@query).gsub('&', '%26')
-    end
-
-    def boolean_query?
-      !!@boolean
     end
 
     def with_fields(*fields)
@@ -71,13 +64,24 @@ module CloudSearch
       self
     end
 
-    def items_per_page
-      @response.items_per_page
-    end
-
     def at_page(page)
       @page_number = (page && page < 1) ? 1 : page
       self
+    end
+
+    def query
+      CGI::escape(@query)
+    end
+
+    def boolean_query
+      bq = @boolean_queries.map do |k, v|
+        "#{k}:'#{CGI::escape(v)}'"
+      end.join(' ')
+      "(and #{bq})"
+    end
+
+    def items_per_page
+      @response.items_per_page
     end
 
     def page_number
@@ -93,7 +97,8 @@ module CloudSearch
       check_configuration_parameters
 
       "#{CloudSearch.config.search_url}/search".tap do |u|
-        u.concat("?#{query_parameter}=#{query}&size=#{items_per_page}&start=#{start}")
+        u.concat("?q=#{query}&size=#{items_per_page}&start=#{start}")
+        u.concat("&bq=#{boolean_query}") if @boolean_queries.any?
         u.concat("&return-fields=#{URI.escape(@fields.join(","))}") if @fields.any?
         u.concat("&#{filter_expression}") if @filters.any?
         u.concat("&facet=#{@facets.join(',')}") if @facets.any?
@@ -106,10 +111,6 @@ module CloudSearch
     end
 
     private
-
-    def query_parameter
-      boolean_query? ? "bq" : "q"
-    end
 
     def filter_expression
       @filters.join("&")
