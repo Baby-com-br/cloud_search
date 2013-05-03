@@ -50,12 +50,6 @@ describe CloudSearch::Searcher do
     end
   end
 
-  describe "#with_facet_constraints" do
-    it "setup facets" do
-      searcher.with_facet_constraints(:foo => ["bar", "spam"]).url.should include "facet-foo-constraints='bar','spam'"
-    end
-  end
-
   describe "#ranked_by" do
     it "returns the instance" do
       searcher.ranked_by("foobar").should == searcher
@@ -140,15 +134,10 @@ describe CloudSearch::Searcher do
     end
   end
 
-  describe "#with_filter" do
-    it "adds the filter to the query" do
-      searcher.with_query("foo").with_filter("t-product_active=1")
-      searcher.url.should == "#{url_prefix}q=foo&size=10&start=0&t-product_active=1"
-    end
-
-    it "can be used to add several filter expressions to the query" do
-      searcher.with_query("foo").with_filter("t-product_active=1").with_filter("t-brand_active=1")
-      searcher.url.should == "#{url_prefix}q=foo&size=10&start=0&t-product_active=1&t-brand_active=1"
+  describe "#with_filters" do
+    it "adds filters to the search" do
+      searcher.with_query("foo").with_filters('t-product_active' => 1, 't-brand_active' => 2)
+      searcher.url.should include "t-product_active=1&t-brand_active=2"
     end
   end
 
@@ -239,15 +228,6 @@ describe CloudSearch::Searcher do
           searcher.with_facets(:genre, :year)
           resp = searcher.search
           resp.facets.should == {"genre"=>{"Action"=>7, "Adventure"=>7, "Sci-Fi"=>7, "Fantasy"=>5, "Animation"=>1, "Family"=>1, "Thriller"=>1}, "year"=>{"min"=>1977, "max"=>2008}}
-        end
-      end
-
-      it "constrains facets" do
-        VCR.use_cassette "search/request/facets_with_constraints" do
-          searcher.with_facets(:genre, :year)
-          searcher.with_facet_constraints(:genre => "Sci-Fi")
-          resp = searcher.search
-          resp.facets.should == {"genre"=>{"Sci-Fi"=>7}, "year"=>{"min"=>1977, "max"=>2008}}
         end
       end
     end

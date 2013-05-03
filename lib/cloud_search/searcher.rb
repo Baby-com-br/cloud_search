@@ -10,10 +10,9 @@ module CloudSearch
       @response = SearchResponse.new
       @query = ''
       @boolean_queries = {}
-      @filters = []
+      @filters = {}
       @facets = []
       @fields = []
-      @facets_constraints = {}
     end
 
     def search
@@ -38,18 +37,13 @@ module CloudSearch
       self
     end
 
-    def with_filter(filter)
-      @filters << filter
+    def with_filters(filters)
+      @filters = filters
       self
     end
 
     def with_facets(*facets)
       @facets += facets
-      self
-    end
-
-    def with_facet_constraints(facets_constraints)
-      @facets_constraints = facets_constraints
       self
     end
 
@@ -77,18 +71,20 @@ module CloudSearch
       check_configuration_parameters
       raise InsufficientParametersException.new('At least query or boolean_query must be defined.') if (@query.empty? && @boolean_queries.empty?)
 
-      "#{CloudSearch.config.search_url}/search".tap do |u|
-        u.concat("?q=#{query}&size=#{items_per_page}&start=#{start}")
-        u.concat("&bq=#{boolean_query}") if @boolean_queries.any?
-        u.concat("&return-fields=#{URI.escape(@fields.join(","))}") if @fields.any?
-        u.concat("&#{filter_expression}") if @filters.any?
-        u.concat("&facet=#{@facets.join(',')}") if @facets.any?
-        u.concat(@facets_constraints.map do |k,v|
-          values = v.respond_to?(:map) ? v.map{ |i| "'#{i}'" } : ["'#{v}'"]
-          "&facet-#{k}-constraints=#{values.join(',')}"
-        end.join('&'))
-        u.concat("&rank=#{@rank}") if @rank
-      end
+      params = {
+        'q' => query,
+        'bq' => boolean_query,
+        'size' => items_per_page,
+        'start' => start,
+        'return-fields' => URI.escape(@fields.join(",")),
+        'facet' => @facets.join(','),
+        'rank' => @rank
+      }
+      params.merge! @filters
+      params.delete_if { |_,v| v.nil? || v.to_s.empty? }
+
+      querystring = params.map { |k,v| "#{k}=#{v}" }.join('&')
+      "#{CloudSearch.config.search_url}/search?#{querystring}"
     end
 
     def items_per_page
@@ -111,6 +107,8 @@ module CloudSearch
     end
 
     def boolean_query
+      return '' if @boolean_queries.empty?
+
       bq = @boolean_queries.map do |key, values|
         "#{key}:'#{values.map { |e| CGI::escape(e) }.join('|')}'"
       end.join(' ')
