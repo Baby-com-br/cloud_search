@@ -8,32 +8,16 @@ describe CloudSearch::Searcher do
     searcher.with_query('lsdakfusur')
   end
 
-  describe "#query" do
-    it "returns default query" do
-      described_class.new.query.should == ""
-    end
-
-    it "returns default query when it's tried to set nil value" do
-      searcher.with_query(nil)
-      searcher.query.should == ""
-    end
-  end
-
   describe "#with_query" do
     it "returns #{described_class} instance" do
       searcher.with_query("foo").should == searcher
     end
 
-    it "setups query" do
-      searcher.with_query("foo")
-      searcher.query.should == "foo"
-    end
-
-    it "returns cloud search url with query" do
+    it "sets the query parameter in the search url" do
       searcher.with_query("foo").url.should include "q=foo"
     end
 
-    it "returns cloud search url with escaped query" do
+    it "escapes the search term" do
       searcher.with_query("f&oo").url.should include "q=f%26oo"
     end
   end
@@ -43,23 +27,19 @@ describe CloudSearch::Searcher do
       searcher.with_boolean_query(:foo => 'bar').should == searcher
     end
 
-    it "setup boolean query" do
-      searcher.with_boolean_query(:foo => 'bar').boolean_query.should == "(and foo:'bar')"
-    end
-
-    it "returns cloud search url with boolean query" do
+    it "sets the boolean query parameter in the search url" do
       searcher.with_boolean_query(:foo => 'bar').url.should include "bq=(and foo:'bar')"
     end
 
-    it "returns cloud search url with escaped boolean query" do
+    it "escapes search terms" do
       searcher.with_boolean_query(:foo => 'ba&r').url.should include "bq=(and foo:'ba%26r')"
     end
 
-    it "returns cloud search url with multiple arguments per key" do
+    it "sets search terms with multiple acceptable values" do
       searcher.with_boolean_query(:foo => ['bar', 'baz']).url.should include "bq=(and foo:'bar|baz')"
     end
 
-    it "returns cloud search url with multiple search keys" do
+    it "sets multiple search keys" do
       searcher.with_boolean_query(:foo => 'bar', :baz => ['zaz', 'traz']).url.should include "bq=(and foo:'bar' baz:'zaz|traz')"
     end
   end

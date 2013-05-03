@@ -91,17 +91,6 @@ module CloudSearch
       end
     end
 
-    def query
-      CGI::escape(@query)
-    end
-
-    def boolean_query
-      bq = @boolean_queries.map do |key, values|
-        "#{key}:'#{values.map { |e| CGI::escape(e) }.join('|')}'"
-      end.join(' ')
-      "(and #{bq})"
-    end
-
     def items_per_page
       @response.items_per_page
     end
@@ -116,6 +105,17 @@ module CloudSearch
     end
 
     private
+
+    def query
+      CGI::escape(@query)
+    end
+
+    def boolean_query
+      bq = @boolean_queries.map do |key, values|
+        "#{key}:'#{values.map { |e| CGI::escape(e) }.join('|')}'"
+      end.join(' ')
+      "(and #{bq})"
+    end
 
     def filter_expression
       @filters.join("&")
