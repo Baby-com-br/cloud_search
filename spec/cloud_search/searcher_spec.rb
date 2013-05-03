@@ -2,14 +2,15 @@ require "spec_helper"
 
 describe CloudSearch::Searcher do
   subject(:searcher) { described_class.new }
+  let(:url_prefix) { "#{CloudSearch.config.search_url}/search?" }
 
-  let(:url_prefix) do
-    "#{CloudSearch.config.search_url}/search?"
+  before do
+    searcher.with_query('lsdakfusur')
   end
 
   describe "#query" do
     it "returns default query" do
-      searcher.query.should == ""
+      described_class.new.query.should == ""
     end
 
     it "returns default query when it's tried to set nil value" do
@@ -81,7 +82,7 @@ describe CloudSearch::Searcher do
     end
 
     it "sets the rank expression in the searcher object" do
-      searcher.ranked_by("foobar").url.should == "#{url_prefix}q=&size=10&start=0&rank=foobar"
+      searcher.ranked_by("foobar").url.should include "rank=foobar"
     end
   end
 
@@ -95,7 +96,7 @@ describe CloudSearch::Searcher do
     end
 
     it "returns cloud search url with foo and bar fields" do
-      searcher.with_fields(:foo, :bar).url.should == "#{url_prefix}q=&size=10&start=0&return-fields=foo,bar"
+      searcher.with_fields(:foo, :bar).url.should include "return-fields=foo,bar"
     end
   end
 
@@ -121,7 +122,7 @@ describe CloudSearch::Searcher do
     end
 
     it "returns cloud search url with size equals 20" do
-      searcher.with_items_per_page(20).url.should == "#{url_prefix}q=&size=20&start=0"
+      searcher.with_items_per_page(20).url.should include "size=20"
     end
   end
 
@@ -155,7 +156,7 @@ describe CloudSearch::Searcher do
     end
 
     it "returns cloud search url with start at 10" do
-      searcher.at_page(2).url.should == "#{url_prefix}q=&size=10&start=10"
+      searcher.at_page(2).url.should include "start=10"
     end
   end
 
@@ -185,6 +186,10 @@ describe CloudSearch::Searcher do
   describe "#url" do
     it "returns default cloud search url" do
       searcher.url.should include "size=10&start=0"
+    end
+
+    it "raises an error if neither query nor boolean query are defined" do
+      expect { described_class.new.url }.to raise_error CloudSearch::InsufficientParametersException
     end
   end
 

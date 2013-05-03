@@ -11,6 +11,7 @@ module CloudSearch
   autoload :Indexer,               "cloud_search/indexer"
   autoload :Document,              "cloud_search/document"
   autoload :InvalidDocument,       "cloud_search/invalid_document"
+  autoload :InsufficientParametersException, "cloud_search/exceptions"
 
   def self.config
     Config.instance

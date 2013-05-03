@@ -75,6 +75,7 @@ module CloudSearch
 
     def url
       check_configuration_parameters
+      raise InsufficientParametersException.new('At least query or boolean_query must be defined.') if (@query.empty? && @boolean_queries.empty?)
 
       "#{CloudSearch.config.search_url}/search".tap do |u|
         u.concat("?q=#{query}&size=#{items_per_page}&start=#{start}")
