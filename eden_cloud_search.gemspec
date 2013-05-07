@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'cloud_search/version'
+require 'eden_cloud_search/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "cloud_search"
+  gem.name          = "eden_cloud_search"
   gem.version       = CloudSearch::VERSION
   gem.platform      = Gem::Platform::RUBY
   gem.authors       = ["Willian Fernandes"]
   gem.email         = ["willian@willianfernandes.com.br"]
-  gem.homepage      = "http://rubygems.org/gems/cloud_search"
+  gem.homepage      = "http://rubygems.org/gems/eden_cloud_search"
   gem.summary       = "A wraper to Amazon CloudSearch's API"
   gem.description   = gem.summary
 
@@ -25,7 +25,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "vcr"       , "~> 2.2"
   gem.add_development_dependency "webmock"
 
-  # gem.add_dependency "em-http-request"       , "~> 1.0"
   gem.add_dependency "rest-client", "~> 1.6.7"
 end
 

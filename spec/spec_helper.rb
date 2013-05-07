@@ -4,7 +4,7 @@ Bundler.require(:default, :development)
 require "simplecov"
 SimpleCov.start
 
-require "cloud_search"
+require "eden_cloud_search"
 
 CloudSearch.configure do |config|
   config.domain_id   = "pl6u4t3elu7dhsbwaqbsy3y6be"
